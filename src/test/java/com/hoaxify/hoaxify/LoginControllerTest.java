@@ -2,6 +2,7 @@ package com.hoaxify.hoaxify;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.hoaxify.hoaxify.error.ApiError;
+import com.hoaxify.hoaxify.user.User;
+import com.hoaxify.hoaxify.user.UserRepository;
+import com.hoaxify.hoaxify.user.UserService;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -24,6 +28,18 @@ public class LoginControllerTest {
 
 	@Autowired
 	TestRestTemplate testRestTemplate;
+
+	@Autowired
+	UserRepository userRepository;
+
+	@Autowired
+	UserService userService;
+
+	@Before
+	public void cleanup() {
+		userRepository.deleteAll();
+		testRestTemplate.getRestTemplate().getInterceptors().clear();
+	}
 
 	public <T> ResponseEntity<T> login(Class<T> responseType) {
 		return testRestTemplate.postForEntity(API_1_0_LOGIN, null, responseType);
@@ -64,5 +80,18 @@ public class LoginControllerTest {
 		authenticate();
 		ResponseEntity<Object> response = login(Object.class);
 		assertThat(response.getHeaders().containsKey("WWW-Authenticate")).isFalse();
+	}
+
+	@Test
+	public void postLogin_withValidCredentials_receiveOk() {
+		User user = new User();
+		user.setDisplayName("test-display");
+		user.setUsername("test-user");
+		user.setPassword("P4ssword");
+		userService.save(user);
+		authenticate();
+
+		ResponseEntity<Object> response = login(Object.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 }
