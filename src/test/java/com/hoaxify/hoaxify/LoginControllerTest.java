@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class LoginControllerTest {
 	@Autowired
 	UserService userService;
 
-	@Before
+	@BeforeEach
 	public void cleanup() {
 		userRepository.deleteAll();
 		testRestTemplate.getRestTemplate().getInterceptors().clear();
@@ -103,12 +103,53 @@ public class LoginControllerTest {
 	public void postLogin_withValidCredentials_receiveLoggedInUserId() {
 		User inDB = userService.save(TestUtil.createValidUser());
 		authenticate();
-
 		ResponseEntity<Map<String, Object>> response = login(new ParameterizedTypeReference<Map<String, Object>>() {
 		});
-
 		Map<String, Object> body = response.getBody();
 		Integer id = (Integer) body.get("id");
 		assertThat(id).isEqualTo(inDB.getId());
+	}
+
+	@Test
+	public void postLogin_withValidCredentials_receiveLoggedInUserImage() {
+		User inDB = userService.save(TestUtil.createValidUser());
+		authenticate();
+		ResponseEntity<Map<String, Object>> response = login(new ParameterizedTypeReference<Map<String, Object>>() {
+		});
+		Map<String, Object> body = response.getBody();
+		String image = (String) body.get("image");
+		assertThat(image).isEqualTo(inDB.getImage());
+	}
+
+	@Test
+	public void postLogin_withValidCredentials_receiveLoggedInUsersDisplayName() {
+		User inDB = userService.save(TestUtil.createValidUser());
+		authenticate();
+		ResponseEntity<Map<String, Object>> response = login(new ParameterizedTypeReference<Map<String, Object>>() {
+		});
+		Map<String, Object> body = response.getBody();
+		String displayName = (String) body.get("displayName");
+		assertThat(displayName).isEqualTo(inDB.getDisplayName());
+	}
+
+	@Test
+	public void postLogin_withValidCredentials_receiveLoggedInUsersUsername() {
+		User inDB = userService.save(TestUtil.createValidUser());
+		authenticate();
+		ResponseEntity<Map<String, Object>> response = login(new ParameterizedTypeReference<Map<String, Object>>() {
+		});
+		Map<String, Object> body = response.getBody();
+		String userName = (String) body.get("username");
+		assertThat(userName).isEqualTo(inDB.getUsername());
+	}
+
+	@Test
+	public void postLogin_withValidCredentials_notReceiveLoggedInUsersPassword() {
+		userService.save(TestUtil.createValidUser());
+		authenticate();
+		ResponseEntity<Map<String, Object>> response = login(new ParameterizedTypeReference<Map<String, Object>>() {
+		});
+		Map<String, Object> body = response.getBody();
+		assertThat(body.containsKey("password")).isFalse();
 	}
 }
