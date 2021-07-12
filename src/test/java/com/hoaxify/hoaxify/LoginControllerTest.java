@@ -16,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.hoaxify.hoaxify.error.ApiError;
-import com.hoaxify.hoaxify.user.User;
 import com.hoaxify.hoaxify.user.UserRepository;
 import com.hoaxify.hoaxify.user.UserService;
 
@@ -84,11 +83,7 @@ public class LoginControllerTest {
 
 	@Test
 	public void postLogin_withValidCredentials_receiveOk() {
-		User user = new User();
-		user.setDisplayName("test-display");
-		user.setUsername("test-user");
-		user.setPassword("P4ssword");
-		userService.save(user);
+		userService.save(TestUtil.createValidUser());
 		authenticate();
 
 		ResponseEntity<Object> response = login(Object.class);
